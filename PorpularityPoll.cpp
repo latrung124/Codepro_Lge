@@ -2,61 +2,93 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#include <cstring>
+#include <map>
+#include <set>
 using namespace std;
 
 int n, m;
-vector<string> candidates;
-vector<std::pair<string, int>> votedPoll;
-int scoreN[10000];
 
-void inputData() {
-	cin >> n;
-	for (int i = 0; i < n; ++i) {
-		string s;
-		cin >> s;
-		candidates.push_back(s);
-	}
-	cin >> m;
-	for (int j = 0; j < m; ++j) {
-		string ss;
-		cin >> ss;
-		int score;
-		cin >> score;
-		vector<string>::iterator it = std::find(candidates.begin(), candidates.end(), ss);
-		if (it != candidates.end()) {
-			int pos = it - candidates.begin();
-			cout << ss << " " << score << endl;
-			scoreN[pos] = score;
-		}
-	}
+map<string, int> tenDiem;
+map<string, int> tenThuTu;
+
+bool cmp(std::pair<string,int>& a, std::pair<string,int>& b) {
+    return a.second > b.second;
 }
 
-int findMax(int s[], int score, int pos) {
-	for (int i = n - 1; i >= 0; --i) {
-		if (score < scoreN[i]) {
-			score = scoreN[i];
-			pos = i;
-		}
-	}
-	cout << candidates.at(pos) << score << endl;
-	return pos;
-}
 
 void solve() {
-	int pos = 0;
-	int count = 0;
-	for (int i = n-1; i >= 0; --i) {
-		if (i != pos) {
-			int score = scoreN[i];
-			pos = findMax(scoreN, score, i);
-			count++;
-		}	
-		if (count == 2) break;
-	}
-	cout << endl;
+    cin >> n;
+    for (int i = 0; i < n; ++i) {
+        string s;
+        cin >> s;
+        std::pair<string, int> e;
+        e.first = s;
+        e.second = i;
+        std::pair<string, int> e1;
+        e1.first = s;
+        e1.second = 0;
+        tenThuTu.insert(e);
+        tenDiem.insert(e1);
+    }
+    cin >> m;
+    for (int j = 0; j < m; ++j) {
+        string ss;
+        cin >> ss;
+        int score;
+        cin >> score;
+        std::pair<string, int> e;
+        e.first = ss;
+        e.second = score;
+
+        std::map<string,int>::iterator it = tenDiem.find(ss);
+        if ( it != tenDiem.end()) {
+            it->second+=score;
+        }
+    }
+    std::vector<pair<string,int>> vec;
+    std::copy(tenDiem.begin(),
+              tenDiem.end(),
+              std::back_inserter<std::vector<pair<string,int>>>(vec));
+    std::sort(vec.begin(), vec.end(), cmp);
+    vector<pair<string,int>> result;
+    for (int i = 0; i < vec.size(); ++i) {
+       if (result.empty())
+       result.push_back(vec.at(i));
+       else {
+           for (int j = 0; j < result.size(); ++j) {
+               if (vec.at(i).second == result.at(j).second) {
+                   std::map<string,int>::iterator it1;
+                   it1 = tenThuTu.find(vec.at(i).first);
+                   std::map<string,int>::iterator it2;
+                   it2 = tenThuTu.find(result.at(j).first);
+                   if (it1 != tenThuTu.end() && it2 != tenThuTu.end()) {
+                       if (it1->second < it2->second) {
+                           result.insert(result.begin() + j, vec.at(i));
+                           break;
+                       } else {
+                           if (it1->first != it2->first) {
+                               result.push_back(vec.at(i));
+                               break;
+                           }
+                       }
+                   }
+               } else {
+                   if (result.size() < 3) {
+                       result.push_back(vec.at(i));
+                   } else {
+                       break;
+                   }
+               }
+           }
+       }
+    }
+    for(int i = 0; i < 3; i++) {
+        cout << result.at(i).first << " " << result.at(i).second << endl;
+    }
 }
+
 int main() {
-	inputData();
-	solve();
-	return 0;
+    solve();
+    return 0;
 }
